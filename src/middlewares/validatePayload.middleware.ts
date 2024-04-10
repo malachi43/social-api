@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import joi from "joi";
 
-//validate user payload
-async function isUserPayloadValid(
+//validate user register payload
+async function isRegisterPayloadValid(
   req: Request,
   res: Response,
   next: NextFunction
@@ -13,6 +13,21 @@ async function isUserPayloadValid(
     password: joi.string().required(),
   });
 
+  await schema.validateAsync(req.body);
+  next();
+}
+
+//validate user login payload
+async function isLoginPayloadValid(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const schema = joi.object({
+    email: joi.string().required(),
+    password: joi.string().required(),
+  });
+  console.log(req.body)
   await schema.validateAsync(req.body);
   next();
 }
@@ -47,4 +62,4 @@ async function isPostPayloadValid(
   next();
 }
 
-export { isUserPayloadValid, isCommentPayloadValid, isPostPayloadValid };
+export { isRegisterPayloadValid, isCommentPayloadValid, isPostPayloadValid, isLoginPayloadValid };

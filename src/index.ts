@@ -28,12 +28,10 @@ if (cluster.isPrimary) {
     cluster.fork();
   });
 } else {
-  const storage = multer.memoryStorage();
-  const upload = multer({ storage });
+
   const app = express();
   const server = createServer(app);
   const io = new Server(server);
-  // export default io;
 
   io.on("connection", () => {
     console.log(`socket connected`);
@@ -48,7 +46,7 @@ if (cluster.isPrimary) {
   //parse x-www-form-urlencoded data
   app.use(express.urlencoded({ extended: false }));
 
-  app.use("/api/v1/posts", upload.single("upload"), postRoute);
+  app.use("/api/v1/posts", postRoute);
   app.use("/api/v1/users", userRoute);
   app.use("/api/v1/likes", likeRoute);
   app.use("/api/v1/comments/:postId", commentLikeRoute);
@@ -86,9 +84,4 @@ if (cluster.isPrimary) {
     return mentionArray;
   }
 
-  // const res = getMention(mention);
-  // res.forEach((tag) => {
-  //   console.log(tag, tag.substring(1));
-  //   io.emit(tag.substring(1), `${tag.substring(1)} was mentioned in a post.`);
-  // });
 }

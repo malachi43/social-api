@@ -2,7 +2,6 @@ import { HydratedDocument, Model } from "mongoose";
 import conn from "../database/database.js";
 import BadRequest from "../errors/badRequest.error.js";
 import pkg from "jsonwebtoken";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 const { sign } = pkg;
 
 // interface IUser {
@@ -18,6 +17,7 @@ const { sign } = pkg;
 //   comparePassword(field: string): boolean;
 // }
 // Model<IUser, {}, IUserMethods>
+
 class UserService {
   #_User: any;
   constructor() {
@@ -37,21 +37,23 @@ class UserService {
   //login a user
   async login({ email, password }) {
     const user = await this.#_User.findOne({ email });
+
     if (!user) {
       throw new BadRequest(`email or password is incorrect.`);
     }
     const isPasswordValid: boolean = await user.comparePassword(password);
-    console.log(`is password valid: `, isPasswordValid);
     if (!isPasswordValid) {
       throw new BadRequest(`email or password is incorrect`);
     }
+    console.log(`in user service: `, user);
 
     //generate a token to send to the user.
     const token = sign(
-      { id: user._id.toString(), username: user.username },
+      { id: user._id.toString(), email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "21d" }
     );
+    
     return { user, token };
   }
 

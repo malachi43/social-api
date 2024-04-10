@@ -14,7 +14,6 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: [true, "passowrd field is required."],
-    select: false,
   },
   email: {
     type: String,
@@ -43,9 +42,7 @@ userSchema.pre("save", async function () {
 userSchema.index({ username: 1 });
 userSchema.index({ email: 1 });
 
-userSchema.methods.comparePassword = async function (
-  loginPassword: string
-): Promise<true | false> {
+userSchema.methods.comparePassword = async function (loginPassword: string) {
   return await compare(loginPassword, this.password);
 };
 

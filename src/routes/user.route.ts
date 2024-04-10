@@ -1,17 +1,17 @@
 import express from "express";
 import userController from "../controllers/user.controller.js";
 import asyncWrapper from "../lib/asyncWrapper.js";
-import { isUserPayloadValid } from "../middlewares/validatePayload.middleware.js";
+import { isRegisterPayloadValid,isLoginPayloadValid } from "../middlewares/validatePayload.middleware.js";
 const router = express.Router();
 
 router.post(
   "/login",
-  asyncWrapper(isUserPayloadValid),
+  asyncWrapper(isLoginPayloadValid),
   asyncWrapper(userController.login)
 );
 router.post(
   "/register",
-  asyncWrapper(isUserPayloadValid),
+  asyncWrapper(isRegisterPayloadValid),
   asyncWrapper(userController.register)
 );
 router.get("/:userId/follow/:id", asyncWrapper(userController.follow));

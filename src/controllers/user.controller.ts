@@ -5,6 +5,7 @@ const { StatusCodes } = pkg;
 
 class UserController {
   async register(req: Request, res: Response) {
+    console.log(req.body)
     const registerdUser = await userService.register(req.body);
     res.status(StatusCodes.OK).json({ data: registerdUser });
   }
