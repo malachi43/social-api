@@ -20,6 +20,9 @@ postSchema.post("save", async function (doc) {
   const { _id, author } = doc;
   const Comment = conn.model("CommentAndLike");
   await new Comment({ postId: _id, author }).save();
+
+  const NoOfCommentsAndLikes = conn.model("NoOfCommentAndLike");
+  await new NoOfCommentsAndLikes({ postId: _id, author }).save();
 });
 
 export default postSchema;

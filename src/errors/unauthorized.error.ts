@@ -1,7 +1,7 @@
 import pkg from "http-status-codes";
 const { StatusCodes } = pkg;
 
-class Unauthorized extends Error {
+class UnauthorizedError extends Error {
   msg: string;
   statusCode: number;
   constructor(msg: string) {
@@ -10,4 +10,4 @@ class Unauthorized extends Error {
   }
 }
 
-export default Unauthorized;
+export default UnauthorizedError;

@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import commentLikesController from "../controllers/commentLikes.controller.js";
+import commentLikesController from "../controllers/comment_likes.controller.js";
 import asyncWrapper from "../lib/asyncWrapper.js";
 import isAuthenticated from "../middlewares/authencticate.middleware.js";
 

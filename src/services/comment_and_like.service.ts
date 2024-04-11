@@ -1,5 +1,5 @@
 import conn from "../database/database.js";
-import { Model } from "mongoose";
+import { HydratedDocument, Model } from "mongoose";
 import paginate from "../lib/paginate.js";
 import BadRequest from "../errors/badRequest.error.js";
 
@@ -10,26 +10,38 @@ interface ICommentLike {
   comments?: {};
 }
 
+interface INoOfCommentAndLike {
+  postId: string;
+  author: string;
+  no_of_likes?: number;
+  no_of_comments?: number;
+}
+
 class CommentAndLikeService {
   #_CommentLike: Model<ICommentLike>;
+  #_NoOfCommentAndLike: Model<INoOfCommentAndLike>;
   constructor() {
     this.#_CommentLike = conn.model("CommentAndLike");
+    this.#_NoOfCommentAndLike = conn.model("NoOfCommentAndLike");
   }
 
-  async getlikesAndComments(postId: string) {
-    const docs = await paginate({
-      model: "CommentAndLike",
-      pageNumber: 1,
-      contentPerPage: 5,
-      projection: { __v: 0 },
-      query: { postId },
-      keyname: "likesAndComments",
-    });
-    return { ...docs };
+  async getNoOfLikesAndComments(postId: string) {
+    const no_of_comments_and_likes = await this.#_NoOfCommentAndLike
+      .findOne({
+        postId,
+      })
+      .populate({ path: "author", select: "username" })
+      .select({ __v: 0 });
+    if (!no_of_comments_and_likes) {
+      throw new BadRequest(`no post with the id:${postId}`);
+    }
+
+    return { no_of_comments_and_likes };
   }
 
   async likePost(postId: string, userId: string) {
     const like: any = await this.#_CommentLike.findOne({ postId });
+    const noOfLike: any = await this.#_NoOfCommentAndLike.findOne({ postId });
 
     if (!like) {
       throw new BadRequest(`no post with this id:${postId}.`);
@@ -43,18 +55,30 @@ class CommentAndLikeService {
     if (isLiked) {
       //unlike post
       like.likes.delete(userId);
+      //decrease the like number
+      noOfLike.no_of_likes--;
     } else {
       //like post
       like.likes.set(userId, true);
+      //increase the like number
+      noOfLike.no_of_likes++;
     }
 
+    //updating to the current state of like.
     const updatedLike = await this.#_CommentLike.findOneAndUpdate(
       { postId },
       { likes: like.likes },
       { new: true, runValidators: true }
     );
 
-    return { success: true, data: updatedLike };
+    //updating the no_of_likes count to reflect the current state.
+    const updatedNoOfLike = await this.#_NoOfCommentAndLike.findOneAndUpdate(
+      { postId },
+      { no_of_likes: noOfLike.no_of_likes },
+      { new: true, runValidators: true }
+    );
+
+    return { success: true };
   }
 
   async commentPost({ postId, comment, userId, skip = 1 }) {
@@ -84,6 +108,17 @@ class CommentAndLikeService {
       { postId },
       //limits the number of returned "comments" in the comments array.
       { comments: { $slice: [skipOffset, contentPerPage] } }
+    );
+
+    const noOfComment: HydratedDocument<INoOfCommentAndLike> =
+      await this.#_NoOfCommentAndLike.findOne({ postId });
+    //increase the comment count.
+    noOfComment.no_of_comments++;
+
+    //update the no_of_ comments count to reflect the current state.
+    const updatedNoOfComment = await this.#_NoOfCommentAndLike.findOneAndUpdate(
+      { postId },
+      { no_of_comments: noOfComment.no_of_comments }
     );
 
     return { data: updatedComment[0] };

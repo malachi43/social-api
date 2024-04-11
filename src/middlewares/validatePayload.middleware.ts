@@ -39,7 +39,7 @@ async function isCommentPayloadValid(
   next: NextFunction
 ) {
   const schema = joi.object({
-    comments: joi.string().optional(),
+    comment: joi.string().optional(),
   });
 
   await schema.validateAsync(req.body);

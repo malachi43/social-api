@@ -45,16 +45,7 @@ class UserService {
     if (!isPasswordValid) {
       throw new BadRequest(`email or password is incorrect`);
     }
-    console.log(`in user service: `, user);
-
-    //generate a token to send to the user.
-    const token = sign(
-      { id: user._id.toString(), email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "21d" }
-    );
-    
-    return { user, token };
+    return { user };
   }
 
   async follow(userId: string, followerId: string) {
@@ -73,13 +64,15 @@ class UserService {
       userFollowed.followers.set(followerId, followerId);
     }
 
-    const userUpdatedFollower = await this.#_User.findByIdAndUpdate(
-      { _id: userId },
-      { followers: userFollowed.followers },
-      { new: true, runValidators: true }
-    );
+    const userUpdatedFollower = await this.#_User
+      .findByIdAndUpdate(
+        { _id: userId },
+        { followers: userFollowed.followers },
+        { new: true, runValidators: true }
+      )
+      .select({ password: false });
 
-    return { data: userUpdatedFollower };
+    return userUpdatedFollower;
   }
 }
 

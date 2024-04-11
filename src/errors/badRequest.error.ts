@@ -1,7 +1,7 @@
 import pkg from "http-status-codes";
 const { StatusCodes } = pkg;
 
-class BadRequest extends Error {
+class BadRequestError extends Error {
   msg: string;
   statusCode: number;
   constructor(msg: string) {
@@ -10,4 +10,4 @@ class BadRequest extends Error {
   }
 }
 
-export default BadRequest;
+export default BadRequestError;

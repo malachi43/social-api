@@ -2,21 +2,20 @@ import mongoose, { Schema } from "mongoose";
 
 const opts = { toJSON: { virtuals: true }, toObject: { virtuals: true } };
 
-const commentSchema = new Schema(
+const noOfCommentsAndLikesSchema = new Schema(
   {
     postId: {
       type: Schema.Types.ObjectId,
       ref: "Post",
       required: [true, "comment must be reference by a postId."],
     },
-    likes: {
-      type: Map,
-      of: Boolean,
-      default: {},
+    no_of_likes: {
+      type: Number,
+      default: 0,
     },
-    comments: {
-      type: [String],
-      default: [],
+    no_of_comments: {
+      type: Number,
+      default: 0,
     },
     author: {
       type: Schema.Types.ObjectId,
@@ -27,12 +26,4 @@ const commentSchema = new Schema(
   opts
 );
 
-commentSchema.virtual("numOfLikes").get(function () {
-  return this.likes.size;
-});
-
-commentSchema.virtual("numOfComments").get(function () {
-  return this.comments.length;
-});
-
-export default commentSchema;
+export default noOfCommentsAndLikesSchema;

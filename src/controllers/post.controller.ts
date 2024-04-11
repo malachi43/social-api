@@ -4,18 +4,20 @@ import postService from "../services/post.service.js";
 interface ICustomRequest extends Request {
   file: { buffer: string; mimetype: string };
   user: { id: string };
+  session: { user: { id: string } };
 }
 
 class PostController {
   async creatPost(req: ICustomRequest, res: Response, next: NextFunction) {
     const { description } = req.body;
     let dataURI: string;
+    console.log(req.file);
     if (req.file) {
       const { buffer, mimetype } = req.file;
       dataURI = PostController.convertToBase64(buffer, mimetype);
     }
     const media = dataURI || "";
-    const { id } = req.user;
+    const { id } = req.session.user;
     const post = await postService.createPost({
       description,
       media,
@@ -24,12 +26,13 @@ class PostController {
     res.status(200).json({ post });
   }
 
-  async getFeed(req: Request, res: Response, next: NextFunction) {
-    const { id } = req.params;
+  async getFeed(req: ICustomRequest, res: Response, next: NextFunction) {
+    // const { id } = req.params;
     const { page } = req.query;
     const skip = Number(page);
-    const feeds = postService.getFeedPost(id, skip);
-    res.status(200).json({ ...feeds });
+    const { id } = req.session.user;
+    const feeds = await postService.getFeedPost(id, skip);
+    res.status(200).json({ feeds });
   }
 
   async getPosts(req: Request, res: Response, next: NextFunction) {

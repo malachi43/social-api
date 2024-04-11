@@ -25,10 +25,12 @@ const userSchema = new Schema({
   followers: {
     type: Map,
     of: String,
+    default: {}
   },
   following: {
     type: Map,
     of: String,
+    default: {}
   },
 });
 

@@ -45,13 +45,17 @@ class PostService {
     }
     obj.media = uploadedMediaUrl;
     const newPost: HydratedDocument<IPost> = await new this.#_Post(obj).save();
-    return newPost;
+    return {
+      description: newPost.description,
+      media: newPost.media,
+      author: newPost.author,
+      id: newPost._id,
+    };
   }
 
   async getFeedPost(id: string, skip = 1) {
     const User = conn.model("User");
     const user = await User.findById(id);
-
     const contentPerPage = 5;
     const skipOffset = (skip - 1) * contentPerPage;
 
@@ -59,28 +63,34 @@ class PostService {
       throw new BadRequest(`no user with this id:${id}`);
     }
 
-    if (user.followers.size > 0) {
+    if (Array.from(user.followers).length > 0) {
       let userFeed: any = await User.find(
         { _id: id },
-        //limits the number of returned "followers" in the followers array.
+        //limits the number of returned "followers" in the followers array(pagination).
         { followers: { $slice: [skipOffset, contentPerPage] } }
       );
 
       //convert map to array, so we can use arary methods.
       userFeed = Array.from(userFeed[0].followers);
 
+      //getting each post of the user's followers.
       const feeds = await Promise.all(
-        userFeed.map(async ([_, authorId]) => {
-          const post = await this.#_Post.findOne({ author: authorId });
+        userFeed.map(async (item: [string, string]) => {
+          const post: any = await (
+            await this.#_Post.findOne({ author: item[1] })
+          ).populate({ path: "author", select: "username" });
           if (post) {
-            return post;
+            return {
+              id: post._id.toString(),
+              description: post.description,
+              author: post.author,
+            };
           }
         })
       );
-
-      return { feeds };
+      return feeds;
     } else {
-      return { feeds: [] };
+      return [];
     }
   }
 

@@ -8,14 +8,16 @@ import cors from "cors";
 import helmet from "helmet";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import errorHandler from "./middlewares/errorHandler.middleware.js";
-import notFound from "./middlewares/notFound.middleware.js";
-import multer from "multer";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import errorHandler from "./middlewares/error_handler.middleware.js";
+import notFound from "./middlewares/not_found.middleware.js";
+import conn from "./database/database.js";
 import postRoute from "./routes/post.route.js";
 import userRoute from "./routes/user.route.js";
 import likeRoute from "./routes/like.route.js";
 import commentRoute from "./routes/comment.route.js";
-import commentLikeRoute from "./routes/commentAndLike.route.js";
+import commentAndLikeRoute from "./routes/comment_and_like.route.js";
 
 //this creates an instance of this app equal to the number of CPU cores, this ensures high throughput.
 if (cluster.isPrimary) {
@@ -28,7 +30,20 @@ if (cluster.isPrimary) {
     cluster.fork();
   });
 } else {
-
+  const sessionConfig = {
+    name: "airfile",
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: false, // don't create session until something stored
+    resave: false, //don't save session if unmodified
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+    },
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      // touchAfter: 24 * 3600 // time period in seconds
+    }),
+  };
   const app = express();
   const server = createServer(app);
   const io = new Server(server);
@@ -41,6 +56,9 @@ if (cluster.isPrimary) {
   app.use(cors());
   app.use(helmet());
 
+  //session configuration
+  app.use(session(sessionConfig));
+
   //parse JSON
   app.use(express.json());
   //parse x-www-form-urlencoded data
@@ -49,7 +67,7 @@ if (cluster.isPrimary) {
   app.use("/api/v1/posts", postRoute);
   app.use("/api/v1/users", userRoute);
   app.use("/api/v1/likes", likeRoute);
-  app.use("/api/v1/comments/:postId", commentLikeRoute);
+  app.use("/api/v1/comments/:postId", commentAndLikeRoute);
   app.use("/api/v1/comments/:postId/users", commentRoute);
 
   app.use(notFound);
@@ -83,5 +101,4 @@ if (cluster.isPrimary) {
 
     return mentionArray;
   }
-
 }
