@@ -18,6 +18,22 @@ import userRoute from "./routes/user.route.js";
 import likeRoute from "./routes/like.route.js";
 import commentRoute from "./routes/comment.route.js";
 import commentAndLikeRoute from "./routes/comment_and_like.route.js";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
+
+//this helps us to send notification to users in real-time
+export default io;
+
+io.on("connection", () => {
+  console.log(`socket connected`);
+});
 
 //this creates an instance of this app equal to the number of CPU cores, this ensures high throughput.
 if (cluster.isPrimary) {
@@ -44,13 +60,7 @@ if (cluster.isPrimary) {
       // touchAfter: 24 * 3600 // time period in seconds
     }),
   };
-  const app = express();
-  const server = createServer(app);
-  const io = new Server(server);
 
-  io.on("connection", () => {
-    console.log(`socket connected`);
-  });
   const PORT = process.env.PORT || 3000;
 
   app.use(cors());
@@ -59,9 +69,9 @@ if (cluster.isPrimary) {
   //session configuration
   app.use(session(sessionConfig));
 
-  //parse JSON
+  //parse JSON and attach to req.body
   app.use(express.json());
-  //parse x-www-form-urlencoded data
+  //parse x-www-form-urlencoded data and attach to req.body
   app.use(express.urlencoded({ extended: false }));
 
   app.use("/api/v1/posts", postRoute);
@@ -69,36 +79,19 @@ if (cluster.isPrimary) {
   app.use("/api/v1/likes", likeRoute);
   app.use("/api/v1/comments/:postId", commentAndLikeRoute);
   app.use("/api/v1/comments/:postId/users", commentRoute);
-
+  app.use("/hello", (req: Request, res: Response, next: NextFunction) => {
+    res.status(200).sendFile(join(__dirname, "index.html"));
+  });
   app.use(notFound);
   app.use(errorHandler);
 
-  server.listen(PORT, () => {
-    console.log(
-      `Server is listening on port:${PORT}. Press Ctrl+C to terminate.`
-    );
-  });
-
-  const mention = `i like @malachi cos he's awesome I wish @MIKEY was here and @lishNisha @momma they are also awesome @zaddy`;
-
-  function getMention(comment: string): string[] {
-    const mentionArray = [];
-
-    const regex = /@\w+\b/gm;
-    let m: any;
-
-    while ((m = regex.exec(mention)) !== null) {
-      // This is necessary to avoid infinite loops with zero-width matches
-      if (m.index === regex.lastIndex) {
-        regex.lastIndex++;
-      }
-
-      // The result can be accessed through the `m`-variable.
-      m.forEach((match: string) => {
-        mentionArray.push(match);
-      });
-    }
-
-    return mentionArray;
+  async function startServer() {
+    server.listen(PORT, () => {
+      console.log(
+        `Server is listening on port:${PORT}. Press Ctrl+C to terminate.`
+      );
+    });
   }
+
+  startServer();
 }

@@ -1,22 +1,7 @@
 import { HydratedDocument, Model } from "mongoose";
 import conn from "../database/database.js";
 import BadRequest from "../errors/badRequest.error.js";
-import pkg from "jsonwebtoken";
-const { sign } = pkg;
 
-// interface IUser {
-//   username?: string;
-//   email: string;
-//   password: string;
-//   followers?: {};
-//   following?: {};
-//   comparePassword(field: string): boolean;
-// }
-
-// interface IUserMethods {
-//   comparePassword(field: string): boolean;
-// }
-// Model<IUser, {}, IUserMethods>
 
 class UserService {
   #_User: any;

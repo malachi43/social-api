@@ -45,6 +45,7 @@ const paginate = async ({
       numOfPages,
       hasNext: pageNumber * CONTENT_PER_PAGE < numOfDocs,
       hasPrev: pageNumber > 1,
+      count: docs.length
     };
   } catch (error) {
     throw error;

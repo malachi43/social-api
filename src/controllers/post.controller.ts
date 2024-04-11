@@ -32,7 +32,7 @@ class PostController {
     const skip = Number(page);
     const { id } = req.session.user;
     const feeds = await postService.getFeedPost(id, skip);
-    res.status(200).json({ feeds });
+    res.status(200).json({ data: feeds });
   }
 
   async getPosts(req: Request, res: Response, next: NextFunction) {

@@ -88,7 +88,7 @@ class PostService {
           }
         })
       );
-      return feeds;
+      return { feeds, count: feeds.length };
     } else {
       return [];
     }

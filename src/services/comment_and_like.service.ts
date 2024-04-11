@@ -1,7 +1,7 @@
 import conn from "../database/database.js";
 import { HydratedDocument, Model } from "mongoose";
-import paginate from "../lib/paginate.js";
 import BadRequest from "../errors/badRequest.error.js";
+import io from "../index.js";
 
 interface ICommentLike {
   postId: string;
@@ -60,6 +60,7 @@ class CommentAndLikeService {
     } else {
       //like post
       like.likes.set(userId, true);
+      io.emit(userExists.username, `your post was liked`);
       //increase the like number
       noOfLike.no_of_likes++;
     }
